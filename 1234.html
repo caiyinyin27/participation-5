@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Node-Link Diagram</title>
+    <title>TSOIYANYAN's Learning Experience Node-Link Diagram</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -12,16 +12,24 @@
             align-items: center;
             height: 100vh;
             margin: 0;
-            background-color: #f0f0f0;
+            background-color: #f4f4f9;
         }
         svg {
             border: 1px solid #ccc;
             background-color: white;
         }
-        .node {
-            fill: #4CAF50;
+        .main-node {
             stroke: #333;
             stroke-width: 2px;
+        }
+        .elementary { fill: #FF6F61; } /* Coral for Elementary */
+        .middle { fill: #6B7280; } /* Gray for Middle */
+        .high { fill: #10B981; } /* Green for High */
+        .college { fill: #3B82F6; } /* Blue for College */
+        .branch-node {
+            fill: #FBBF24; /* Yellow for Subjects */
+            stroke: #333;
+            stroke-width: 1px;
         }
         .node-label {
             font-size: 12px;
@@ -34,6 +42,11 @@
             stroke-width: 2px;
             fill: none;
         }
+        .branch-link {
+            stroke: #999;
+            stroke-width: 1px;
+            fill: none;
+        }
         .arrowhead {
             fill: #666;
         }
@@ -41,35 +54,125 @@
             position: absolute;
             background-color: #333;
             color: white;
-            padding: 5px 10px;
+            padding: 8px 12px;
             border-radius: 4px;
             font-size: 12px;
             pointer-events: none;
             opacity: 0;
             transition: opacity 0.2s;
+            max-width: 200px;
+            text-align: center;
+        }
+        .title {
+            font-size: 18px;
+            font-weight: bold;
+            fill: #333;
+            text-anchor: middle;
+        }
+        .legend-text {
+            font-size: 12px;
+            fill: #333;
+        }
+        .legend-node {
+            stroke: #333;
+            stroke-width: 1px;
         }
     </style>
 </head>
 <body>
-    <svg width="400" height="300">
-        <!-- Nodes -->
-        <circle class="node" cx="100" cy="100" r="20" data-label="Alice"></circle>
-        <circle class="node" cx="300" cy="100" r="20" data-label="Bob"></circle>
-        <circle class="node" cx="100" cy="200" r="20" data-label="Charlie"></circle>
-        <circle class="node" cx="300" cy="200" r="20" data-label="Diana"></circle>
+    <svg width="900" height="700">
+        <!-- Title -->
+        <text class="title" x="450" y="40">TSOIYANYAN's Learning Experience at Different Stages</text>
 
-        <!-- Node Labels -->
-        <text class="node-label" x="100" y="100">Alice</text>
-        <text class="node-label" x="300" y="100">Bob</text>
-        <text class="node-label" x="100" y="200">Charlie</text>
-        <text class="node-label" x="300" y="200">Diana</text>
+        <!-- Main Nodes -->
+        <circle class="main-node elementary" cx="400" cy="100" r="30" data-label="Elementary School"></circle>
+        <circle class="main-node middle" cx="400" cy="250" r="30" data-label="Middle School"></circle>
+        <circle class="main-node high" cx="400" cy="400" r="30" data-label="High School"></circle>
+        <circle class="main-node college" cx="400" cy="550" r="30" data-label="College"></circle>
 
-        <!-- Links (Arrows) -->
-        <path class="link" d="M120,100 L280,100" marker-end="url(#arrow)"></path> <!-- Alice -> Bob -->
-        <path class="link" d="M120,200 L280,200" marker-end="url(#arrow)"></path> <!-- Charlie -> Diana -->
-        <path class="link" d="M100,120 L100,180" marker-end="url(#arrow)"></path> <!-- Alice -> Charlie -->
-        <path class="link" d="M300,120 L300,180" marker-end="url(#arrow)"></path> <!-- Bob -> Diana -->
-        <path class="link" d="M120,120 L280,180" marker-end="url(#arrow)"></path> <!-- Alice -> Diana -->
+        <!-- Branch Nodes (Subjects) -->
+        <!-- Elementary School -->
+        <circle class="branch-node" cx="300" cy="80" r="15" data-label="Children's Painting"></circle>
+        <circle class="branch-node" cx="300" cy="120" r="15" data-label="Dancing"></circle>
+        <circle class="branch-node" cx="500" cy="100" r="15" data-label="Singing"></circle>
+
+        <!-- Middle School -->
+        <circle class="branch-node" cx="300" cy="230" r="15" data-label="Latin Dance"></circle>
+        <circle class="branch-node" cx="300" cy="270" r="15" data-label="Sketching"></circle>
+        <circle class="branch-node" cx="500" cy="250" r="15" data-label="Watercolor"></circle>
+
+        <!-- High School -->
+        <circle class="branch-node" cx="300" cy="380" r="15" data-label="Micro-Film"></circle>
+        <circle class="branch-node" cx="300" cy="420" r="15" data-label="Sculpture"></circle>
+        <circle class="branch-node" cx="500" cy="400" r="15" data-label="Photography"></circle>
+
+        <!-- College -->
+        <circle class="branch-node" cx="300" cy="510" r="15" data-label="Music"></circle>
+        <circle class="branch-node" cx="300" cy="550" r="15" data-label="Programming"></circle>
+        <circle class="branch-node" cx="300" cy="590" r="15" data-label="Computers"></circle>
+        <circle class="branch-node" cx="500" cy="530" r="15" data-label="Documentaries"></circle>
+        <circle class="branch-node" cx="500" cy="570" r="15" data-label="Micro-Films"></circle>
+
+        <!-- Main Node Labels -->
+        <text class="node-label" x="400" y="100">Elementary</text>
+        <text class="node-label" x="400" y="250">Middle</text>
+        <text class="node-label" x="400" y="400">High</text>
+        <text class="node-label" x="400" y="550">College</text>
+
+        <!-- Branch Node Labels -->
+        <text class="node-label" x="300" y="80" font-size="10">Painting</text>
+        <text class="node-label" x="300" y="120" font-size="10">Dancing</text>
+        <text class="node-label" x="500" y="100" font-size="10">Singing</text>
+        <text class="node-label" x="300" y="230" font-size="10">Latin Dance</text>
+        <text class="node-label" x="300" y="270" font-size="10">Sketching</text>
+        <text class="node-label" x="500" y="250" font-size="10">Watercolor</text>
+        <text class="node-label" x="300" y="380" font-size="10">Micro-Film</text>
+        <text class="node-label" x="300" y="420" font-size="10">Sculpture</text>
+        <text class="node-label" x="500" y="400" font-size="10">Photography</text>
+        <text class="node-label" x="300" y="510" font-size="10">Music</text>
+        <text class="node-label" x="300" y="550" font-size="10">Programming</text>
+        <text class="node-label" x="300" y="590" font-size="10">Computers</text>
+        <text class="node-label" x="500" y="530" font-size="10">Documentaries</text>
+        <text class="node-label" x="500" y="570" font-size="10">Micro-Films</text>
+
+        <!-- Main Links (Timeline) -->
+        <path class="link" d="M400,130 L400,220" marker-end="url(#arrow)"></path> <!-- Elementary -> Middle -->
+        <path class="link" d="M400,280 L400,370" marker-end="url(#arrow)"></path> <!-- Middle -> High -->
+        <path class="link" d="M400,430 L400,520" marker-end="url(#arrow)"></path> <!-- High -> College -->
+
+        <!-- Branch Links -->
+        <!-- Elementary -->
+        <path class="branch-link" d="M400,100 L300,80"></path>
+        <path class="branch-link" d="M400,100 L300,120"></path>
+        <path class="branch-link" d="M400,100 L500,100"></path>
+        <!-- Middle -->
+        <path class="branch-link" d="M400,250 L300,230"></path>
+        <path class="branch-link" d="M400,250 L300,270"></path>
+        <path class="branch-link" d="M400,250 L500,250"></path>
+        <!-- High -->
+        <path class="branch-link" d="M400,400 L300,380"></path>
+        <path class="branch-link" d="M400,400 L300,420"></path>
+        <path class="branch-link" d="M400,400 L500,400"></path>
+        <!-- College -->
+        <path class="branch-link" d="M400,550 L300,510"></path>
+        <path class="branch-link" d="M400,550 L300,550"></path>
+        <path class="branch-link" d="M400,550 L300,590"></path>
+        <path class="branch-link" d="M400,550 L500,530"></path>
+        <path class="branch-link" d="M400,550 L500,570"></path>
+
+        <!-- Legend -->
+        <rect x="700" y="100" width="150" height="140" fill="white" stroke="#ccc" stroke-width="1"/>
+        <text class="legend-text" x="710" y="120" font-weight="bold">Legend</text>
+        <circle class="legend-node elementary" cx="720" cy="140" r="10"></circle>
+        <text class="legend-text" x="740" y="140">Elementary School</text>
+        <circle class="legend-node middle" cx="720" cy="160" r="10"></circle>
+        <text class="legend-text" x="740" y="160">Middle School</text>
+        <circle class="legend-node high" cx="720" cy="180" r="10"></circle>
+        <text class="legend-text" x="740" y="180">High School</text>
+        <circle class="legend-node college" cx="720" cy="200" r="10"></circle>
+        <text class="legend-text" x="740" y="200">College</text>
+        <circle class="legend-node branch-node" cx="720" cy="220" r="10"></circle>
+        <text class="legend-text" x="740" y="220">Subjects</text>
 
         <!-- Arrowhead Definition -->
         <defs>
@@ -84,7 +187,7 @@
 
     <script>
         // Add interactivity for tooltips
-        const nodes = document.querySelectorAll('.node');
+        const nodes = document.querySelectorAll('.main-node, .branch-node');
         const tooltip = document.querySelector('.tooltip');
 
         nodes.forEach(node => {

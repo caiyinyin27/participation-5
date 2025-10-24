@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TSOIYANYAN's Learning Experience Adjacency Matrix</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f4f4f9;
+        }
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 20px 0;
+            color: #333;
+        }
+        .container {
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            font-size: 12px;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+            max-width: 100px;
+            word-wrap: break-word;
+        }
+        td {
+            width: 50px;
+            height: 30px;
+        }
+        .main-node {
+            font-weight: bold;
+        }
+        .elementary { background-color: #FF6F61; color: white; } /* Coral */
+        .middle { background-color: #6B7280; color: white; } /* Gray */
+        .high { background-color: #10B981; color: white; } /* Green */
+        .college { background-color: #3B82F6; color: white; } /* Blue */
+        .branch-node { background-color: #FBBF24; color: #333; } /* Yellow */
+        .connected {
+            background-color: #d4edda;
+            font-weight: bold;
+        }
+        .legend {
+            background-color: white;
+            border: 1px solid #ccc;
+            padding: 10px;
+            font-size: 12px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+        }
+        .legend-circle {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+            border: 1px solid #333;
+        }
+        .tooltip {
+            position: absolute;
+            background-color: #333;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            max-width: 200px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1 class="title">TSOIYANYAN's Learning Experience at Different Stages</h1>
+    <div class="container">
+        <div id="matrix-container"></div>
+        <div class="legend">
+            <div class="legend-item"><div class="legend-circle elementary"></div> Elementary School</div>
+            <div class="legend-item"><div class="legend-circle middle"></div> Middle School</div>
+            <div class="legend-item"><div class="legend-circle high"></div> High School</div>
+            <div class="legend-item"><div class="legend-circle college"></div> College</div>
+            <div class="legend-item"><div class="legend-circle branch-node"></div> Subjects</div>
+        </div>
+    </div>
+    <div class="tooltip"></div>
+
+    <script>
+        // Define row and column headers
+        const rowHeaders = [
+            "Children's Painting",
+            "Dancing",
+            "Singing",
+            "Latin Dance",
+            "Sketching",
+            "Watercolor",
+            "Micro-Film (High)",
+            "Sculpture",
+            "Photography",
+            "Music",
+            "Programming",
+            "Computers",
+            "Documentaries",
+            "Micro-Films (College)"
+        ];
+
+        const colHeaders = [
+            "Elementary School",
+            "Middle School",
+            "High School",
+            "College"
+        ];
+
+        // Initialize 14x4 adjacency matrix with zeros
+        const matrix = Array(14).fill().map(() => Array(4).fill(0));
+
+        // Define edges from the Node-Link Diagram (only subject-to-main-node connections)
+        const edges = [
+            { from: "Children's Painting", to: "Elementary School" },
+            { from: "Dancing", to: "Elementary School" },
+            { from: "Singing", to: "Elementary School" },
+            { from: "Latin Dance", to: "Middle School" },
+            { from: "Sketching", to: "Middle School" },
+            { from: "Watercolor", to: "Middle School" },
+            { from: "Micro-Film (High)", to: "High School" },
+            { from: "Sculpture", to: "High School" },
+            { from: "Photography", to: "High School" },
+            { from: "Music", to: "College" },
+            { from: "Programming", to: "College" },
+            { from: "Computers", to: "College" },
+            { from: "Documentaries", to: "College" },
+            { from: "Micro-Films (College)", to: "College" }
+        ];
+
+        // Populate the matrix
+        edges.forEach(edge => {
+            const i = rowHeaders.indexOf(edge.from);
+            const j = colHeaders.indexOf(edge.to);
+            if (i !== -1 && j !== -1) {
+                matrix[i][j] = 1;
+            }
+        });
+
+        // Create table
+        const container = document.getElementById('matrix-container');
+        const table = document.createElement('table');
+        const headerRow = document.createElement('tr');
+        headerRow.innerHTML = '<th></th>' + colHeaders.map(node => {
+            let className = 'main-node';
+            if (node === "Elementary School") className += ' elementary';
+            else if (node === "Middle School") className += ' middle';
+            else if (node === "High School") className += ' high';
+            else if (node === "College") className += ' college';
+            return `<th class="${className}">${node}</th>`;
+        }).join('');
+        table.appendChild(headerRow);
+
+        rowHeaders.forEach((rowNode, i) => {
+            const row = document.createElement('tr');
+            const rowHeader = document.createElement('th');
+            rowHeader.className = 'main-node branch-node';
+            rowHeader.textContent = rowNode;
+            row.appendChild(rowHeader);
+            colHeaders.forEach((colNode, j) => {
+                const cell = document.createElement('td');
+                cell.textContent = matrix[i][j];
+                if (matrix[i][j] === 1) {
+                    cell.classList.add('connected');
+                    cell.setAttribute('data-tooltip', `${rowNode} ↔ ${colNode}`);
+                }
+                row.appendChild(cell);
+            });
+            table.appendChild(row);
+        });
+        container.appendChild(table);
+
+        // Add tooltip interactivity
+        const tooltip = document.querySelector('.tooltip');
+        document.querySelectorAll('td').forEach(cell => {
+            cell.addEventListener('mouseover', (e) => {
+                if (cell.classList.contains('connected')) {
+                    tooltip.style.opacity = '1';
+                    tooltip.textContent = cell.getAttribute('data-tooltip');
+                    tooltip.style.left = `${e.pageX + 10}px`;
+                    tooltip.style.top = `${e.pageY + 10}px`;
+                }
+            });
+            cell.addEventListener('mouseout', () => {
+                tooltip.style.opacity = '0';
+            });
+        });
+    </script>
+</body>
+</html>
