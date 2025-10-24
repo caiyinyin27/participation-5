@@ -1,0 +1,116 @@
+/*(style.css)*/
+
+html{
+    background-color: white;
+    scroll-behavior: smooth;
+}
+body{
+    color: rgb(2, 36, 81); /*a comment*/
+    margin: 10px;
+    font: 14px Tahoma; 
+    background-color:antiquewhite;
+}
+p {
+    color: black;
+    margin: 0; /*Remove all margins to minimize space*/
+}
+
+.subpage {
+   color: black;
+   margin: 0; /* Remove margins for button */
+}
+
+.box {
+    display: flex;
+}
+
+.box > div {
+    border: solid 1px black;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-rows: 100px 100px;
+    grid-template-columns: 100px 100px 100px;
+    grid-gap: 1px
+}
+
+.grid-item1 {
+    background: lightgray;
+    border: black 1px solid;
+    grid-column-start: 1;
+    grid-column-end: 5;
+    grid-row-start: 1;
+    grid-row-end: 3;
+}   
+
+.profile-img{
+    width: 25%; /* Set to 25% of intrinsic size */
+    height: 25%; /* Ensure proportional scaling */
+    margin: 0; /* Remove all margins */;
+    padding: 0; /* Remove any padding */
+    display: block; /* Prevent inline spacing */
+    line-height: 0; /* Eliminate line-height spacing */
+}
+main {
+    margin: 0; /* Remove margins from main */
+    padding: 0; /* Remove padding from main */
+    line-height: 0; /* Prevent line-height spacing in container */
+}
+
+header, section {
+    margin: 2em auto;
+    width: min(75em, 100%);
+    background-color: antiquewhite;
+    padding: min(2em, 15%);
+    border-radius: 1em;
+}
+nav {
+    margin: 1em auto 1em auto;
+    width: min(1000px, 100%);
+    font-size: 1.5em;
+}
+
+nav ul {
+    display: flex;
+    align-items: center;
+    list-style-type: none;
+    gap: 2em;
+}
+
+nav p:first-child {
+    margin-right: auto;
+    font-size: 1.5em;
+}
+ .intro_button {
+    display: inline-block;
+    text-decoration: none;
+    color: white;
+    background-color: lightsalmon;
+    padding: .75em 1em;
+    margin-top: 0em;
+    border-radius: .5em;
+    font-weight: 600;
+ }
+
+.flex-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 3em;
+}
+header img {
+    max-width: 100%;
+    border-radius: 1em;
+    object-fit: cover;
+    object-position: bottom;
+}
+
+.text-container {
+    flex: 0 1 40em;
+}
+
+h1 {
+    font-size: 2em;
+}
