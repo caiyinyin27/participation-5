@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Visitor Map - Real-Time Tracking</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        body { 
+            margin: 0; 
+            padding: 0; 
+            background: #000; 
+            font-family: 'Courier New', monospace;
+            color: #0ff;
+            overflow: hidden;
+        }
+        #map { 
+            height: 100vh; 
+            width: 100%; 
+        }
+        .title {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 14px 22px;
+            border: 2px solid #0ff;
+            border-radius: 10px;
+            z-index: 1000;
+            font-size: 22px;
+            color: #0ff;
+            text-shadow: 0 0 15px #0ff;
+            backdrop-filter: blur(5px);
+            font-weight: bold;
+            box-shadow: 0 0 25px rgba(0, 255, 255, 0.4);
+        }
+        .stats {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.85);
+            padding: 12px 18px;
+            border: 1.5px solid #0ff;
+            border-radius: 10px;
+            z-index: 1000;
+            font-size: 15px;
+            color: #0ff;
+            text-shadow: 0 0 8px #0ff;
+            backdrop-filter: blur(4px);
+            min-width: 180px;
+            text-align: center;
+        }
+        .stats h3 {
+            margin: 0 0 10px 0;
+            font-size: 16px;
+            color: #0ff;
+        }
+        .visitor-count {
+            font-size: 24px;
+            font-weight: bold;
+            color: #0ff;
+            text-shadow: 0 0 12px #0ff;
+        }
+        .legend {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 14px 18px;
+            border: 1.5px solid #0ff;
+            border-radius: 10px;
+            z-index: 1000;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+            font-size: 14px;
+            backdrop-filter: blur(5px);
+            min-width: 160px;
+        }
+        .legend h4 {
+            margin: 0 0 10px 0;
+            color: #0ff;
+            text-shadow: 0 0 6px #0ff;
+            text-align: center;
+            font-weight: bold;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 6px 0;
+            font-weight: 500;
+        }
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 10px;
+            box-shadow: 0 0 12px currentColor;
+            border: 1.5px solid #000;
+            animation: pulse 2s infinite;
+        }
+        .legend-dot.new { background: #00FF00; }
+        .legend-dot.active { background: #FFFF00; }
+        .legend-dot.offline { background: #FF00FF; opacity: 0.7; }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 10px currentColor; }
+            50% { box-shadow: 0 0 20px currentColor; }
+            100% { box-shadow: 0 0 10px currentColor; }
+        }
+        .glow-dot {
+            filter: drop-shadow(0 0 8px currentColor);
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-6px); }
+        }
+        .visitor-popup {
+            background: rgba(0, 0, 0, 0.95) !important;
+            border: 1.5px solid #0ff !important;
+            color: #0ff !important;
+            font-family: 'Courier New', monospace;
+            padding: 8px 12px !important;
+            border-radius: 8px !important;
+            box-shadow: 0 0 20px #0ff !important;
+            font-size: 13px !important;
+            font-weight: bold;
+            text-shadow: 0 0 6px #0ff;
+            backdrop-filter: blur(4px);
+        }
+        .leaflet-container {
+            cursor: crosshair;
+        }
+    </style>
+</head>
+<body>
+    <div class="title">🌐 LIVE VISITOR MAP</div>
+    <div class="stats">
+        <h3>Current Visitors</h3>
+        <div class="visitor-count" id="visitorCount">0</div>
+    </div>
+
+    <div id="map"></div>
+
+    <!-- Legend -->
+    <div class="legend">
+        <h4>Visitor Status</h4>
+        <div class="legend-item">
+            <div class="legend-dot new"></div>
+            <span>Just Arrived</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-dot active"></div>
+            <span>Active Now</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-dot offline"></div>
+            <span>Left (Last 5min)</span>
+        </div>
+    </div>
+
+    <script>
+        // Initialize map - world view
+        const map = L.map('map', {
+            center: [20, 0],
+            zoom: 2,
+            zoomControl: true,
+            worldCopyJump: true
+        });
+
+        // Dark futuristic basemap
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OpenStreetMap &copy; CARTO',
+            subdomains: 'abcd',
+            maxZoom: 20
+        }).addTo(map);
+
+        // Store active visitors
+        const visitors = new Map(); // visitorId -> { marker, timestamp, city, country, isp }
+        const visitorCountElement = document.getElementById('visitorCount');
+
+        // Add glowing animated marker
+        function addVisitorMarker(lat, lng, data) {
+            const color = data.isNew ? '#00FF00' : '#FFFF00';
+            const marker = L.circleMarker([lat, lng], {
+                color: '#000',
+                weight: 2,
+                fillColor: color,
+                fillOpacity: 0.95,
+                radius: 8
+            }).addTo(map);
+
+            // Apply glow and float
+            const path = marker._path;
+            path.classList.add('glow-dot');
+            path.style.filter = `drop-shadow(0 0 10px ${color})`;
+
+            // Popup with visitor info
+            const popupContent = `
+                <div class="visitor-popup">
+                    <strong>${data.city || 'Unknown'}, ${data.country || '??'}</strong><br>
+                    ISP: ${data.isp || 'Unknown'}<br>
+                    <small>Arrived: ${new Date(data.timestamp).toLocaleTimeString()}</small>
+                </div>
+            `;
+            marker.bindPopup(popupContent, {
+                closeButton: false,
+                autoClose: false,
+                className: 'custom-popup'
+            });
+
+            // Auto-open for new visitors
+            if (data.isNew) {
+                setTimeout(() => marker.openPopup(), 800);
+            }
+
+            return marker;
+        }
+
+        // Simulate real-time visitor data (replace with actual backend in production)
+        function simulateVisitor() {
+            // Random global location
+            const locations = [
+                // Americas
+                { lat: 40.7128, lng: -74.0060, city: "New York", country: "US" },
+                { lat: 34.0522, lng: -118.2437, city: "Los Angeles", country: "US" },
+                { lat: -23.5505, lng: -46.6333, city: "São Paulo", country: "BR" },
+                { lat: 19.4326, lng: -99.1332, city: "Mexico City", country: "MX" },
+
+                // Europe
+                { lat: 51.5074, lng: -0.1278, city: "London", country: "UK" },
+                { lat: 48.8566, lng: 2.3522, city: "Paris", country: "FR" },
+                { lat: 52.5200, lng: 13.4050, city: "Berlin", country: "DE" },
+                { lat: 55.7558, lng: 37.6173, city: "Moscow", country: "RU" },
+
+                // Asia
+                { lat: 35.6762, lng: 139.6503, city: "Tokyo", country: "JP" },
+                { lat: 28.6139, lng: 77.2090, city: "New Delhi", country: "IN" },
+                { lat: 31.2304, lng: 121.4737, city: "Shanghai", country: "CN" },
+                { lat: 1.3521, lng: 103.8198, city: "Singapore", country: "SG" },
+
+                // Others
+                { lat: -33.8688, lng: 151.2093, city: "Sydney", country: "AU" },
+                { lat: 30.0444, lng: 31.2357, city: "Cairo", country: "EG" },
+                { lat: -26.2041, lng: 28.0473, city: "Johannesburg", country: "ZA" }
+            ];
+
+            const loc = locations[Math.floor(Math.random() * locations.length)];
+            const visitorId = Date.now() + Math.random();
+            const ispNames = ["Comcast", "Verizon", "AT&T", "Vodafone", "China Mobile", "Reliance Jio", "Orange", "Telstra"];
+            const isp = ispNames[Math.floor(Math.random() * ispNames.length)];
+
+            const visitorData = {
+                lat: loc.lat + (Math.random() - 0.5) * 0.3,
+                lng: loc.lng + (Math.random() - 0.5) * 0.3,
+                city: loc.city,
+                country: loc.country,
+                isp: isp,
+                timestamp: Date.now(),
+                isNew: true
+            };
+
+            // Add marker
+            const marker = addVisitorMarker(visitorData.lat, visitorData.lng, visitorData);
+            visitors.set(visitorId, {
+                marker,
+                timestamp: Date.now(),
+                city: loc.city,
+                country: loc.country,
+                isp: isp
+            });
+
+            updateVisitorCount();
+            flashNewVisitor();
+
+            // Mark as not new after 3 seconds
+            setTimeout(() => {
+                const v = visitors.get(visitorId);
+                if (v) {
+                    v.marker.setStyle({ fillColor: '#FFFF00' });
+                    const path = v.marker._path;
+                    path.style.filter = 'drop-shadow(0 0 10px #FFFF00)';
+                }
+            }, 3000);
+
+            // Remove after 5 minutes
+            setTimeout(() => {
+                const v = visitors.get(visitorId);
+                if (v) {
+                    v.marker.setStyle({ fillColor: '#FF00FF', fillOpacity: 0.7 });
+                    const path = v.marker._path;
+                    path.style.filter = 'drop-shadow(0 0 8px #FF00FF)';
+                    path.style.animation = 'pulse 2s infinite';
+                }
+                setTimeout(() => {
+                    const v = visitors.get(visitorId);
+                    if (v && v.marker) {
+                        map.removeLayer(v.marker);
+                        visitors.delete(visitorId);
+                        updateVisitorCount();
+                    }
+                }, 60000); // Fully remove after 1 more minute
+            }, 300000); // 5 minutes
+        }
+
+        function updateVisitorCount() {
+            const active = Array.from(visitors.values()).filter(v => 
+                Date.now() - v.timestamp < 300000 // last 5 min
+            ).length;
+            visitorCountElement.textContent = active;
+        }
+
+        function flashNewVisitor() {
+            visitorCountElement.style.color = '#00FF00';
+            setTimeout(() => {
+                visitorCountElement.style.color = '#0ff';
+            }, 600);
+        }
+
+        // Simulate incoming visitors
+        setInterval(simulateVisitor, 4000 + Math.random() * 3000); // Every 4-7 seconds
+
+        // Initial burst
+        setTimeout(() => simulateVisitor(), 1000);
+        setTimeout(() => simulateVisitor(), 2500);
+        setTimeout(() => simulateVisitor(), 3800);
+
+        // Update count every 10 seconds
+        setInterval(updateVisitorCount, 10000);
+
+        // Custom tooltip/popup style
+        const style = document.createElement('style');
+        style.innerHTML = `
+            .leaflet-popup-content-wrapper,
+            .leaflet-popup-tip {
+                background: rgba(0, 0, 0, 0.95) !important;
+                border: 1.5px solid #0ff !important;
+                box-shadow: 0 0 20px #0ff !important;
+            }
+            .leaflet-popup-content {
+                margin: 0 !important;
+                padding: 8px !important;
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Auto-pan to new visitors (optional)
+        map.on('popupopen', function(e) {
+            const px = map.project(e.popup._latlng);
+            px.y -= e.popup._container.clientHeight / 2;
+            map.panTo(map.unproject(px), { animate: true });
+        });
+    </script>
+</body>
+</html>

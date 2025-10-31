@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Journey: Dot Density Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        body { 
+            margin: 0; 
+            padding: 0; 
+            background: #000; 
+            font-family: 'Courier New', monospace;
+            color: #0ff;
+            overflow: hidden;
+        }
+        #map { 
+            height: 100vh; 
+            width: 100%; 
+        }
+        .legend {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.85);
+            padding: 14px 18px;
+            border: 1px solid #0ff;
+            border-radius: 10px;
+            z-index: 1000;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
+            font-size: 15px;
+            backdrop-filter: blur(5px);
+            min-width: 180px;
+        }
+        .legend h4 {
+            margin: 0 0 12px 0;
+            color: #0ff;
+            text-shadow: 0 0 6px #0ff;
+            text-align: center;
+            font-weight: bold;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 8px 0;
+            font-weight: 500;
+        }
+        .legend-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            margin-right: 12px;
+            box-shadow: 0 0 10px currentColor;
+            border: 1.5px solid #000;
+            animation: pulse 2.5s infinite;
+        }
+        .legend-dot.purple { background: #FF00FF; }
+        .legend-dot.blue { background: #00FFFF; }
+        .legend-dot.red { background: #FF0000; }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 10px currentColor; }
+            50% { box-shadow: 0 0 22px currentColor; }
+            100% { box-shadow: 0 0 10px currentColor; }
+        }
+        .title {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.75);
+            padding: 12px 20px;
+            border: 1.5px solid #0ff;
+            border-radius: 8px;
+            z-index: 1000;
+            font-size: 20px;
+            color: #0ff;
+            text-shadow: 0 0 12px #0ff;
+            backdrop-filter: blur(4px);
+            font-weight: bold;
+        }
+        .glow-dot {
+            filter: drop-shadow(0 0 8px currentColor);
+        }
+    </style>
+</head>
+<body>
+    <div class="title">My Journey: Places I've Visited</div>
+    <div id="map"></div>
+
+    <!-- Legend -->
+    <div class="legend">
+        <h4>Travel Type</h4>
+        <div class="legend-item">
+            <div class="legend-dot purple"></div>
+            <span>Attended / Lived</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-dot blue"></div>
+            <span>Family Travel</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-dot red"></div>
+            <span>Personal Adventure</span>
+        </div>
+    </div>
+
+    <script>
+        // Initialize map - centered on China
+        const map = L.map('map', {
+            center: [34.5, 108],
+            zoom: 4.5,
+            zoomControl: true
+        });
+
+        // Dark GPS-style basemap
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OpenStreetMap &copy; CARTO',
+            subdomains: 'abcd',
+            maxZoom: 20
+        }).addTo(map);
+
+        // Add glowing fluorescent dot
+        function addGlowDot(lat, lng, color, radius = 6, opacity = 0.95, label = '') {
+            const marker = L.circleMarker([lat, lng], {
+                color: '#000',
+                weight: 1.8,
+                fillColor: color,
+                fillOpacity: opacity,
+                radius: radius
+            }).addTo(map);
+
+            // Apply glow via SVG filter
+            const path = marker._path;
+            path.classList.add('glow-dot');
+            path.style.filter = `drop-shadow(0 0 6px ${color})`;
+
+            if (label) {
+                marker.bindTooltip(label, {
+                    permanent: false,
+                    direction: 'top',
+                    offset: [0, -10],
+                    className: 'custom-tooltip'
+                });
+            }
+        }
+
+        // High-density cluster for repeated visits
+        function addDensityCluster(centerLat, centerLng, color, count = 20, spread = 0.5, label = '') {
+            // Scatter dots
+            for (let i = 0; i < count; i++) {
+                const offsetLat = (Math.random() - 0.5) * spread;
+                const offsetLng = (Math.random() - 0.5) * spread;
+                addGlowDot(
+                    centerLat + offsetLat,
+                    centerLng + offsetLng,
+                    color,
+                    3 + Math.random() * 3,
+                    0.75 + Math.random() * 0.2
+                );
+            }
+            // Central highlighted dot
+            addGlowDot(centerLat, centerLng, color, 11, 1.0, label);
+        }
+
+        // === PLACE COORDINATES ===
+        const places = {
+            // Attended / Lived (Purple) - High density
+            fujian: { lat: 26.0750, lng: 119.2951, label: "Fujian (Hometown)", color: '#FF00FF', density: 28 },
+            hongkong: { lat: 22.3193, lng: 114.1694, label: "Hong Kong (School)", color: '#FF00FF', density: 15 },
+
+            // Family Travel (Blue)
+            xian: { lat: 34.3416, lng: 108.9398, label: "Xi'an", color: '#00FFFF' },
+            beijing: { lat: 39.9042, lng: 116.4074, label: "Beijing", color: '#00FFFF' },
+            nanjing: { lat: 32.0603, lng: 118.7969, label: "Nanjing", color: '#00FFFF' },
+            luoyang: { lat: 34.6630, lng: 112.3890, label: "Luoyang", color: '#00FFFF' },
+            kaifeng: { lat: 34.7973, lng: 114.3074, label: "Kaifeng", color: '#00FFFF' },
+            hangzhou: { lat: 30.2741, lng: 120.1551, label: "Hangzhou", color: '#00FFFF' },
+            anyang: { lat: 36.0976, lng: 114.3923, label: "Anyang", color: '#00FFFF' },
+            zhengzhou: { lat: 34.7578, lng: 113.6654, label: "Zhengzhou", color: '#00FFFF' },
+            chengdu: { lat: 30.5728, lng: 104.0668, label: "Chengdu", color: '#00FFFF' },
+            chongqing: { lat: 29.5630, lng: 106.5516, label: "Chongqing", color: '#00FFFF' },
+            guangzhou: { lat: 23.1291, lng: 113.2644, label: "Guangzhou", color: '#00FFFF' },
+
+            // Personal Adventure (Red)
+            guilin: { lat: 25.2736, lng: 110.2902, label: "Guilin", color: '#FF0000' },
+            suzhou: { lat: 31.2990, lng: 120.6196, label: "Suzhou", color: '#FF0000' },
+            kunming: { lat: 25.0388, lng: 102.7094, label: "Kunming", color: '#FF0000' },
+            zhangjiajie: { lat: 29.1171, lng: 110.4792, label: "Zhangjiajie", color: '#FF0000' },
+            sanya: { lat: 18.2524, lng: 109.5119, label: "Sanya", color: '#FF0000' },
+            xian_red: { lat: 34.3416, lng: 108.9398, label: "Xi'an (Adventure)", color: '#FF0000' }, // Xi'an appears in both
+            hangzhou_red: { lat: 30.2741, lng: 120.1551, label: "Hangzhou (Adventure)", color: '#FF0000' } // Hangzhou appears in both
+        };
+
+        // === ADD DENSITY FOR LIVED PLACES ===
+        addDensityCluster(
+            places.fujian.lat, places.fujian.lng,
+            places.fujian.color, places.fujian.density, 0.7, places.fujian.label
+        );
+        addDensityCluster(
+            places.hongkong.lat, places.hongkong.lng,
+            places.hongkong.color, places.hongkong.density, 0.18, places.hongkong.label
+        );
+
+        // === ADD FAMILY TRAVEL (BLUE) ===
+        [
+            places.xian, places.beijing, places.nanjing, places.luoyang,
+            places.kaifeng, places.hangzhou, places.anyang, places.zhengzhou,
+            places.chengdu, places.chongqing, places.guangzhou
+        ].forEach(p => addGlowDot(p.lat, p.lng, p.color, 7, 0.95, p.label));
+
+        // === ADD PERSONAL ADVENTURE (RED) ===
+        [
+            places.guilin, places.suzhou, places.kunming,
+            places.zhangjiajie, places.sanya, places.xian_red, places.hangzhou_red
+        ].forEach(p => addGlowDot(p.lat, p.lng, p.color, 7, 0.95, p.label));
+
+        // === CUSTOM TOOLTIP STYLE ===
+        const tooltipStyle = document.createElement('style');
+        tooltipStyle.innerHTML = `
+            .custom-tooltip {
+                background: rgba(0, 0, 0, 0.9) !important;
+                border: 1.5px solid #0ff !important;
+                color: #0ff !important;
+                font-family: 'Courier New', monospace;
+                padding: 6px 10px !important;
+                border-radius: 6px !important;
+                box-shadow: 0 0 15px #0ff !important;
+                font-size: 14px !important;
+                font-weight: bold;
+                text-shadow: 0 0 5px #0ff;
+                backdrop-filter: blur(3px);
+            }
+            .leaflet-tooltip-pane .leaflet-tooltip::before {
+                border: none !important;
+            }
+            .leaflet-container {
+                cursor: crosshair;
+            }
+        `;
+        document.head.appendChild(tooltipStyle);
+    </script>
+</body>
+</html>
